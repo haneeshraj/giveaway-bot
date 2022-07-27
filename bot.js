@@ -42,8 +42,19 @@ client.on("messageCreate", async (message) => {
 
     if (command === "giveaway") {
       if (args[0] === "create") {
+        function commandError(title, description) {
+          const errorEmbed = new EmbedBuilder()
+            .setTitle(title)
+            .setDescription(description)
+            .setColor("Red");
+          return message.channel.send({ embeds: [errorEmbed] });
+        }
+
         if (giveawayInProgress) {
-          return message.author.send("you cant create more than one event");
+          return commandError(
+            "Error!",
+            "You cannot create multiple giveaways!"
+          );
         }
         let [_, d, h, m, s, ...details] = args;
 
@@ -59,48 +70,65 @@ client.on("messageCreate", async (message) => {
 
         // Checking if all the time inputs are not 0
         if (d == 0 && h == 0 && m == 0 && s == 0)
-          return message.channel.send("All the values cannot be 0");
+          return commandError(
+            "Duration Error!",
+            "All the values cannot be 0\nYou can use the `>giveaway help` to see how to set up a giveaway!"
+          );
 
         // Checking if the total time inputs are less than 60 seconds
         if (d == 0 && h == 0 && m == 0 && s <= 60)
-          return message.channel.send(
-            "Enter a time which is greater than 5 mins! 1 min is not acceptable!"
+          return commandError(
+            "Duration Error!",
+            "The minimum duration of a giveaway should be 5 min!\nYou entered a duration which is less than 60 seconds!\nYou can use the `>giveaway help` to see how to set up a giveaway!"
           );
 
         // Checking if the total time inputs are more 5 minutes
         if (d == 0 && h == 0 && m <= 5)
-          return message.channel.send(
-            "Enter a time which is greater than 5 mins!"
+          return commandError(
+            "Duration Error!",
+            "The minimum duration of a giveaway should be 5 min!\nYou entered a duration which is less than 5 mins\nYou can use the `>giveaway help` to see how to set up a giveaway!"
+          );
+
+        // Checking if days are not more than 7
+        if (d >= 8)
+          return commandError(
+            "Day input Error!",
+            "The day input ranges only from 0-7!\n Please enter a number in that range!\nYou can use the `>giveaway help` to see how to set up a giveaway!"
           );
 
         // Checking if hours are not more than 24
-        if (d >= 8)
-          return message.channel.send("You can only enter days until 7!");
-
-        // Checking if hours are not more than 24
         if (h >= 25)
-          return message.channel.send("You can only enter hours until 24!");
+          return commandError(
+            "Hour input Error!",
+            "The hour input ranges only from 0-24!\n Please enter a number in that range!\nYou can use the `>giveaway help` to see how to set up a giveaway!"
+          );
 
         // Checking if minutes are not more than 60
         if (m > 60)
-          return message.channel.send(
-            "You can only enter minutes less than 60!"
+          return commandError(
+            "Minutes input Error!",
+            "The minutes input ranges only from 0-60!\n Please enter a number in that range!\nYou can use the `>giveaway help` to see how to set up a giveaway!"
           );
 
         // Checking if seconds are not more than 60
         if (s > 60)
-          return message.channel.send("You can only enter secs less than 60!");
+          return commandError(
+            "Seconds input Error!",
+            "The seconds input ranges only from 0-60!\n Please enter a number in that range!\nYou can use the `>giveaway help` to see how to set up a giveaway!"
+          );
 
         // Checking if details of the giveaway is given!
         if (details.length === 0)
-          return message.channel.send(
-            "Please enter the details of what the giveaway is about!"
+          return commandError(
+            "Giveaway Details input Error!",
+            "The details of the giveaway has not been mentioned!\nPlease use the `title:` and `:desc` to enter the details of the giveaway\nYou can use the `>giveaway help` to see how to set up a giveaway!"
           );
 
         // Checking if the title of the details is given first
         if (args[5] !== "title:")
-          return message.channel.send(
-            "`title:` should come after the `seconds` attribute"
+          return commandError(
+            "Giveaway Details input Error!",
+            "The details of the giveaway are not following the syntax!\nPlease use the `title:` first and then `:desc` to enter the details of the giveaway\nYou can use the `>giveaway help` to see how to set up a giveaway!"
           );
 
         let giveawayDetails = details.join(" ");
@@ -110,8 +138,9 @@ client.on("messageCreate", async (message) => {
           !giveawayDetails.includes("title:") &&
           !giveawayDetails.includes("desc:")
         )
-          return message.channel.send(
-            "The details doesn't contain `title:` & `desc:` in the details section"
+          return commandError(
+            "Giveaway Details input Error!",
+            "The details doesn't contain `title:` & `desc:` in the details section\nYou can use the `>giveaway help` to see how to set up a giveaway!"
           );
 
         //checking if description attribute is given
@@ -119,12 +148,15 @@ client.on("messageCreate", async (message) => {
           giveawayDetails.includes("title:") &&
           !giveawayDetails.includes("desc:")
         )
-          return message.channel.send("`desc:` hasnt been specificed!");
+          return commandError(
+            "Giveaway Details input Error!",
+            "`desc:` attribute isn't been specificed!"
+          );
         const [gaTitle, gaDesc] = giveawayDetails
           .split("title:")[1]
           .split("desc:");
 
-        let totalTimeInSeconds = 10;
+        let totalTimeInSeconds = 3;
         // Number(d) * 86400 + Number(h) * 3600 + Number(m) * 60 + Number(s);
 
         let [secondsInDays, secondsInHours, secondsInMins, seconds] =
@@ -140,6 +172,12 @@ client.on("messageCreate", async (message) => {
           .setThumbnail(message.guild.iconURL())
           .setColor("Purple")
           .setFields([
+            { name: "\u200B", value: "\u200B" },
+            {
+              inline: false,
+              name: "```Time Left```",
+              value: `\u200B`,
+            },
             { inline: true, name: "**Days**", value: `${secondsInDays}` },
             { inline: true, name: "**Hours**", value: `${secondsInHours}` },
             { inline: true, name: "**Minutes**", value: `${secondsInMins}` },
@@ -178,6 +216,12 @@ client.on("messageCreate", async (message) => {
             .setThumbnail(message.guild.iconURL())
             .setColor("Purple")
             .setFields([
+              { name: "\u200B", value: "\u200B" },
+              {
+                inline: false,
+                name: "```Time Left```",
+                value: `\u200B`,
+              },
               { inline: true, name: "**Days**", value: `${updatedDays}` },
               { inline: true, name: "**Hours**", value: `${updatedHours}` },
               { inline: true, name: "**Minutes**", value: `${updatedMins}` },
@@ -190,11 +234,51 @@ client.on("messageCreate", async (message) => {
             giveawayInProgress = false;
             const usersEntered = userSelected.length;
             clearInterval(timerStart);
-            if (!usersEntered) return msg.edit("nobody entered");
+            if (!usersEntered) {
+              const endEmbed = new EmbedBuilder()
+                .setAuthor({
+                  name: message.guild.name,
+                  iconURL: message.guild.iconURL(),
+                })
+                .setTitle("Content Results!")
+                .setDescription(
+                  "None of the users from the server entered the giveaway!"
+                )
+                .setColor("Green")
+                .setThumbnail(message.guild.iconURL())
+                .setTimestamp()
+                .setFields([
+                  { name: "\u200B", value: "\u200B" },
+                  { name: "Event", value: gaTitle },
+                ]);
+              msg.reactions.removeAll();
+              msg.react("😞");
+              return msg.edit({ embeds: [endEmbed] });
+            }
 
             const randomNum = Math.floor(Math.random() * usersEntered);
+            const winner = client.users.cache.get(userSelected[randomNum]);
 
-            return msg.edit(`<@${userSelected[randomNum]}> won `);
+            const winnerEmbed = new EmbedBuilder()
+              .setAuthor({
+                name: message.guild.name,
+                iconURL: message.guild.iconURL(),
+              })
+              .setTitle("Content Results!")
+              .setDescription(
+                ` Congratulations <@${userSelected[randomNum]}>! You won the giveaway! DM the event host to claim your reward! `
+              )
+              .setColor("Green")
+              .setThumbnail(winner.avatarURL())
+              .setTimestamp()
+              .setFields([
+                { name: "\u200B", value: "\u200B" },
+                { name: "Event", value: gaTitle },
+              ]);
+            msg.edit({ embeds: [winnerEmbed] });
+            msg.reactions.removeAll();
+            msg.react("🥳");
+            return winner.send({ embeds: [winnerEmbed] });
           }
         }, 1000);
       }
