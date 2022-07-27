@@ -1,0 +1,17 @@
+{
+  "name": "giveaway-bot",
+  "version": "1.0.0",
+  "description": "A bot which picks a specific amount of users, who reacted to a reaction of the giveaway message, randomly.",
+  "main": "bot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Haneesh Raj B.",
+  "license": "ISC",
+  "dependencies": {
+    "colors": "^1.4.0",
+    "discord.js": "^14.0.3",
+    "dotenv": "^16.0.1",
+    "get-random-emoji": "^1.0.0"
+  }
+}
