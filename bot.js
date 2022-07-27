@@ -10,6 +10,8 @@ require("dotenv").config();
 
 let prefix = ">";
 
+let giveawayInProgress = false;
+
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -40,6 +42,9 @@ client.on("messageCreate", async (message) => {
 
     if (command === "giveaway") {
       if (args[0] === "create") {
+        if (giveawayInProgress) {
+          return message.author.send("you cant create more than one event");
+        }
         let [_, d, h, m, s, ...details] = args;
 
         // Checking if all the inputs are numbers
@@ -119,8 +124,8 @@ client.on("messageCreate", async (message) => {
           .split("title:")[1]
           .split("desc:");
 
-        let totalTimeInSeconds =
-          Number(d) * 86400 + Number(h) * 3600 + Number(m) * 60 + Number(s);
+        let totalTimeInSeconds = 10;
+        // Number(d) * 86400 + Number(h) * 3600 + Number(m) * 60 + Number(s);
 
         let [secondsInDays, secondsInHours, secondsInMins, seconds] =
           updateTime(totalTimeInSeconds);
@@ -140,6 +145,8 @@ client.on("messageCreate", async (message) => {
             { inline: true, name: "**Minutes**", value: `${secondsInMins}` },
             { inline: true, name: "**Seconds**", value: `${seconds}` },
           ]);
+
+        giveawayInProgress = !giveawayInProgress;
 
         let msg = await message.channel.send({ embeds: [timeEmbed] });
         msg.react("🎈");
@@ -180,6 +187,7 @@ client.on("messageCreate", async (message) => {
           msg.edit({ embeds: [editEmbed] });
 
           if (totalTimeInSeconds <= 0) {
+            giveawayInProgress = false;
             const usersEntered = userSelected.length;
             clearInterval(timerStart);
             if (!usersEntered) return msg.edit("nobody entered");
