@@ -6,7 +6,6 @@ const {
 } = require("discord.js");
 
 const colors = require("colors");
-const getEmoji = require("get-random-emoji");
 require("dotenv").config();
 
 let prefix = ">";
