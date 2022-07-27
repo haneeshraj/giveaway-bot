@@ -70,6 +70,10 @@ client.on("messageCreate", async (message) => {
           );
 
         // Checking if hours are not more than 24
+        if (d >= 8)
+          return message.channel.send("You can only enter days until 7!");
+
+        // Checking if hours are not more than 24
         if (h >= 25)
           return message.channel.send("You can only enter hours until 24!");
 
@@ -118,7 +122,6 @@ client.on("messageCreate", async (message) => {
 
         let totalTimeInSeconds =
           Number(d) * 86400 + Number(h) * 3600 + Number(m) * 60 + Number(s);
-        console.log(totalTimeInSeconds);
 
         let [secondsInDays, secondsInHours, secondsInMins, seconds] =
           updateTime(totalTimeInSeconds);
@@ -140,7 +143,20 @@ client.on("messageCreate", async (message) => {
           ]);
 
         let msg = await message.channel.send({ embeds: [timeEmbed] });
-        msg.react(getEmoji());
+        msg.react("🎈");
+
+        let userSelected = [];
+        const filter = (reaction, user) => {
+          return reaction.emoji.name === "🎈";
+        };
+
+        const collector = msg.createReactionCollector({
+          filter,
+          time: totalTimeInSeconds * 1000,
+        });
+        collector.on("collect", (reaction, user) => {
+          if (user.id !== msg.author.id) userSelected.push(user.id);
+        });
 
         const timerStart = setInterval(() => {
           totalTimeInSeconds -= 1;
@@ -165,12 +181,15 @@ client.on("messageCreate", async (message) => {
           msg.edit({ embeds: [editEmbed] });
 
           if (totalTimeInSeconds <= 0) {
-            msg.edit("picks a random user from the reaction");
+            const usersEntered = userSelected.length;
             clearInterval(timerStart);
+            if (!usersEntered) return msg.edit("nobody entered");
+
+            const randomNum = Math.floor(Math.random() * usersEntered);
+
+            return msg.edit(`<@${userSelected[randomNum]}> won `);
           }
         }, 1000);
-
-        return;
       }
     }
   }
